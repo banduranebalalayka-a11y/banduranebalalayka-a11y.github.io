@@ -1,0 +1,21 @@
+{
+  "name": "Калькулятор пального",
+  "short_name": "Пальне",
+  "description": "Інтерактивний розрахунок витрати пального для звітності.",
+  "start_url": "./V2Інтерактивний розрахунок пального.html",
+  "display": "standalone",
+  "background_color": "#2e2e2e",
+  "theme_color": "#2e2e2e",
+  "icons": [
+    {
+      "src": "images/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "images/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
