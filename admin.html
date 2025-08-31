@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Адмін-панель</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #2e2e2e; color: white; padding: 20px; margin: 0; }
+        h1, h2 { text-align: center; }
+        form { max-width: 500px; margin: 0 auto; }
+        input, select, button { width: 100%; box-sizing: border-box; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #555; background-color: #3e3e3e; color: white; font-size: 1rem; }
+        label { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+        label input { width: auto; }
+        button { cursor: pointer; background-color: #4e4e4e; font-weight: bold; }
+        button[type="submit"] { background-color: #60a860; }
+        .car-list { max-width: 600px; margin: 20px auto 0; }
+        .car-item { background-color: #3e3e3e; padding: 10px 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .delete-btn { background-color: #c06060; width: auto; padding: 8px 12px; }
+        a { color: #87b2ff; margin-top: 30px; display: block; text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>Адмін-панель автомобілів</h1>
+
+    <div id="admin-content" style="display: none;">
+        <h2>Додати новий автомобіль</h2>
+        <form id="add-car-form">
+            <select id="subdivision" required><option value="">Виберіть підрозділ...</option></select>
+            <select id="type" required><option value="">Виберіть тип...</option></select>
+            <input type="text" id="carName" placeholder="Назва авто (напр. Toyota Hilux 6286 Г2)" required>
+            <input type="number" step="0.1" id="consumption" placeholder="Витрата (л/100км)" required>
+            <select id="engine_type" required>
+                <option value="дизель">Дизель</option>
+                <option value="бензин">Бензин</option>
+            </select>
+            <label><input type="checkbox" id="aircon"> Є кондиціонер</label>
+            <label><input type="checkbox" id="cargo"> Може перевозити вантаж</label>
+            <button type="submit">Додати авто</button>
+        </form>
+
+        <hr style="margin: 40px 0; border-color: #4a4a4a;">
+
+        <h2>Список автомобілів</h2>
+        <div id="car-list-container" class="car-list"></div>
+        
+        <a href="index.html">&lt; Повернутись до калькулятора</a>
+    </div>
+
+    <script>
+        // !!! ВАЖЛИВО: Сюди потрібно скопіювати ВЕСЬ ваш об'єкт CARS_DATA з файлу index.html
+        const INITIAL_CARS_DATA = {
+            "Управління": { "Легкова": { "Toyota Hilux 6286 Г2": {"consumption": 10.5, "aircon": true, "cargo": false, "engine_type": "дизель"} } },
+            "Відділення забезпечення": { "Бус": { "Renault Trafic 6313 Г2": {"consumption": 11, "aircon": false, "cargo": false, "engine_type": "дизель"} }, "Вантажівка": { "MAN TGS 33.400 6X6 6298 Г2": {"consumption": 32, "aircon": true, "cargo": true, "engine_type": "дизель"} } },
+            "Медичний пункт": { "Спец.транспорт": { "Peugeot Boxer 6244 Г2": {"consumption": 12.5, "aircon": true, "cargo": false, "engine_type": "дизель"} } },
+            "1 Рота": { "Легкова": { "Toyota Hilux 6287 Г2": {"consumption": 10.5, "aircon": true, "cargo": false, "engine_type": "дизель"} }, "Бус": { "Ford Transit 3050 Г2": {"consumption": 13, "aircon": false, "cargo": false, "engine_type": "дизель"}, "Ford Transit 6271 Г2": {"consumption": 9.5, "aircon": false, "cargo": false, "engine_type": "дизель"}, "Mercedes-Benz 316СDI 2794 Г2": {"consumption": 12.5, "aircon": false, "cargo": false, "engine_type": "дизель"} }, "Вантажівка": { "MAN TGS 33.400 6X6 6297 Г2": {"consumption": 32, "aircon": true, "cargo": true, "engine_type": "дизель"}, "MAN TGS 13.320 4X4 6361 Г2": {"consumption": 27, "aircon": true, "cargo": true, "engine_type": "дизель"} } },
+            "2 Рота": {"Легкова": {}, "Бус": {}, "Вантажівка": {}}, "3 Рота": {"Легкова": {}, "Бус": {}, "Вантажівка": {}}, "4 Рота": {"Легкова": {}, "Бус": {}, "Вантажівка": {}}, "5 Рота": {"Легкова": {}, "Бус": {}, "Вантажівка": {}}
+        };
+        
+        function getCarData() {
+            const dataFromStorage = localStorage.getItem('CARS_DATA');
+            try {
+                if (dataFromStorage) return JSON.parse(dataFromStorage);
+            } catch (e) {
+                console.error("Error parsing CARS_DATA from localStorage", e);
+            }
+            return JSON.parse(JSON.stringify(INITIAL_CARS_DATA));
+        }
+
+        function saveCarData(data) {
+            localStorage.setItem('CARS_DATA', JSON.stringify(data));
+        }
+
+        function runAdmin() {
+            document.getElementById('admin-content').style.display = 'block';
+            let carsData = getCarData();
+
+            function renderCarList() {
+                const container = document.getElementById('car-list-container');
+                container.innerHTML = '';
+                for (const subdivision in carsData) {
+                    for (const type in carsData[subdivision]) {
+                        for (const carName in carsData[subdivision][type]) {
+                            const el = document.createElement('div');
+                            el.className = 'car-item';
+                            el.innerHTML = `<span><b>${carName}</b><br><small>${subdivision} / ${type}</small></span>`;
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.textContent = 'Видалити';
+                            deleteBtn.className = 'delete-btn';
+                            deleteBtn.onclick = () => {
+                                if (confirm(`Видалити ${carName}?`)) {
+                                    delete carsData[subdivision][type][carName];
+                                    saveCarData(carsData);
+                                    renderCarList();
+                                }
+                            };
+                            el.appendChild(deleteBtn);
+                            container.appendChild(el);
+                        }
+                    }
+                }
+            }
+            
+            function populateSelectors() {
+                const subSelector = document.getElementById('subdivision');
+                subSelector.innerHTML = '<option value="">Виберіть підрозділ...</option>';
+                Object.keys(carsData).forEach(sub => {
+                    subSelector.innerHTML += `<option value="${sub}">${sub}</option>`;
+                });
+                subSelector.onchange = () => {
+                    const typeSelector = document.getElementById('type');
+                    typeSelector.innerHTML = '<option value="">Виберіть тип...</option>';
+                    const selectedSub = subSelector.value;
+                    if (selectedSub && carsData[selectedSub]) {
+                        Object.keys(carsData[selectedSub]).forEach(type => {
+                            typeSelector.innerHTML += `<option value="${type}">${type}</option>`;
+                        });
+                    }
+                };
+            }
+
+            document.getElementById('add-car-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const subdivision = document.getElementById('subdivision').value;
+                const type = document.getElementById('type').value;
+                const carName = document.getElementById('carName').value.trim();
+                
+                if (!carName) {
+                    alert("Назва авто не може бути пустою.");
+                    return;
+                }
+
+                const newCar = {
+                    consumption: parseFloat(document.getElementById('consumption').value),
+                    aircon: document.getElementById('aircon').checked,
+                    cargo: document.getElementById('cargo').checked,
+                    engine_type: document.getElementById('engine_type').value
+                };
+                
+                carsData[subdivision][type][carName] = newCar;
+                saveCarData(carsData);
+                renderCarList();
+                e.target.reset();
+                alert(`Автомобіль "${carName}" додано!`);
+            });
+            
+            populateSelectors();
+            renderCarList();
+        }
+
+        const password = "admin"; // <-- Можете змінити пароль тут
+        const enteredPassword = prompt("Введіть пароль до адмін-панелі:");
+
+        if (enteredPassword === password) {
+            runAdmin();
+        } else {
+            alert("Неправильний пароль.");
+            document.body.innerHTML = '<h1>Доступ заборонено</h1><a href="index.html">На головну</a>';
+        }
+    </script>
+</body>
+</html>
