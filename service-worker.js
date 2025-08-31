@@ -1,10 +1,11 @@
-// Назва кешу
+// Назва кешу (змінюйте версію, коли оновлюєте файли)
 const CACHE_NAME = 'fuel-calculator-cache-v1';
 
 // Файли, які потрібно зберегти для офлайн-роботи
 const urlsToCache = [
   './',
-  './V2Інтерактивний розрахунок пального.html',
+  './index.html',
+  './manifest.json',
   './images/icon-192.png',
   './images/icon-512.png'
 ];
@@ -29,8 +30,24 @@ self.addEventListener('fetch', event => {
         if (response) {
           return response;
         }
-        // Інакше, робимо звичайний запит
+        // Інакше, робимо звичайний запит до мережі
         return fetch(event.request);
       })
+  );
+});
+
+// Активація Service Worker: видаляємо старий кеш
+self.addEventListener('activate', event => {
+  const cacheWhitelist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
 });
