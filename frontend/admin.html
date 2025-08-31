@@ -1,1 +1,131 @@
- 
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Адмін-панель</title>
+    <style>
+        :root { --bg-color: #2e2e2e; --fg-color: #ffffff; --entry-bg: #3e3e3e; --btn-bg: #4e4e4e; --success-color: #60a860; --error-color: #c06060; }
+        body { background-color: var(--bg-color); color: var(--fg-color); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 1rem; }
+        h1, h2 { text-align: center; }
+        .container { max-width: 500px; margin: 0 auto; }
+        .form-section { background-color: var(--entry-bg); padding: 1rem; border-radius: 0.5rem; margin-bottom: 2rem; border: 1px solid #555; }
+        input { -webkit-appearance: none; background-color: #2e2e2e; color: var(--fg-color); width: 100%; padding: 0.625rem; border-radius: 0.5rem; border: 1px solid #555; font-size: 1rem; margin-bottom: 0.75rem; box-sizing: border-box; }
+        .btn { background-color: var(--btn-bg); color: var(--fg-color); width: 100%; padding: 0.75rem; border-radius: 0.5rem; text-align: center; font-size: 1rem; cursor: pointer; border: none; }
+        .btn-primary { background-color: #3a5a9a; font-weight: 700; }
+        .message { text-align: center; margin-top: 1rem; font-weight: bold; }
+        .success { color: var(--success-color); }
+        .error { color: var(--error-color); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚙️ Панель адміністратора</h1>
+
+        <div class="form-section">
+            <h2>Додати нового водія</h2>
+            <input type="text" id="newUserPhone" placeholder="Номер телефону (093...)" inputmode="tel">
+            <input type="password" id="newUserPassword" placeholder="Пароль для водія">
+            <button class="btn btn-primary" onclick="addUser()">+ Створити водія</button>
+            <p id="userMessage" class="message"></p>
+        </div>
+
+        <div class="form-section">
+            <h2>Додати новий автомобіль</h2>
+            <input type="text" id="carSubdivision" placeholder="Підрозділ (напр. '1 Рота')">
+            <input type="text" id="carType" placeholder="Тип авто (напр. 'Вантажівка')">
+            <input type="text" id="carName" placeholder="Назва та номер (напр. 'MAN TGS...')">
+            <input type="number" id="carConsumption" placeholder="Базова витрата (л/100км)">
+            <input type="text" id="carEngine" placeholder="Тип двигуна ('дизель' або 'бензин')">
+            <p style="margin: 0.5rem 0;">
+                <input type="checkbox" id="carAircon" style="width: auto;">
+                <label for="carAircon">Є кондиціонер</label>
+            </p>
+            <p style="margin-bottom: 1rem;">
+                <input type="checkbox" id="carCargo" style="width: auto;">
+                <label for="carCargo">Може перевозити вантаж</label>
+            </p>
+            <button class="btn btn-primary" onclick="addCar()">+ Додати авто</button>
+            <p id="carMessage" class="message"></p>
+        </div>
+    </div>
+
+    <script>
+        // ВАЖЛИВО: Цю адресу ми змінимо на реальну, коли розмістимо сервер на хостингу
+        const API_URL = 'http://localhost:3000'; // Поки що для тестування
+
+        async function showMessage(elementId, text, isError = false) {
+            const el = document.getElementById(elementId);
+            el.textContent = text;
+            el.className = 'message ' + (isError ? 'error' : 'success');
+            setTimeout(() => { el.textContent = ''; }, 4000); // Повідомлення зникне через 4 секунди
+        }
+
+        async function addUser() {
+            const username = document.getElementById('newUserPhone').value;
+            const password = document.getElementById('newUserPassword').value;
+
+            if (!username || !password) {
+                showMessage('userMessage', 'Заповніть усі поля!', true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/admin/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message);
+
+                showMessage('userMessage', data.message);
+                document.getElementById('newUserPhone').value = '';
+                document.getElementById('newUserPassword').value = '';
+            } catch (error) {
+                showMessage('userMessage', `Помилка: ${error.message}`, true);
+            }
+        }
+
+        async function addCar() {
+            const carInfo = {
+                consumption: parseFloat(document.getElementById('carConsumption').value),
+                aircon: document.getElementById('carAircon').checked,
+                cargo: document.getElementById('carCargo').checked,
+                engine_type: document.getElementById('carEngine').value.toLowerCase()
+            };
+            const carData = {
+                subdivision: document.getElementById('carSubdivision').value,
+                type: document.getElementById('carType').value,
+                carName: document.getElementById('carName').value,
+                carInfo: carInfo
+            };
+
+            if (!carData.subdivision || !carData.type || !carData.carName || !carInfo.consumption || !carInfo.engine_type) {
+                showMessage('carMessage', 'Заповніть усі поля!', true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/admin/cars`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(carData)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message);
+
+                showMessage('carMessage', data.message);
+                // Очищуємо поля
+                document.getElementById('carSubdivision').value = '';
+                document.getElementById('carType').value = '';
+                document.getElementById('carName').value = '';
+                document.getElementById('carConsumption').value = '';
+                document.getElementById('carEngine').value = '';
+            } catch (error) {
+                showMessage('carMessage', `Помилка: ${error.message}`, true);
+            }
+        }
+    </script>
+</body>
+</html>
