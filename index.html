@@ -540,9 +540,6 @@
                 }
             }
             
-            const totalRouteKm = routes.reduce((sum, route) => sum + route.total_dist, 0);
-            if (totalRouteKm <= 0) return showAlert('Загальний пробіг по всіх маршрутах дорівнює нулю. Розподіл неможливий.');
-
             // --- NEW PROPORTIONAL LOGIC ---
             for (const name in masterSegments) {
                 const totalKmForSegment = masterSegments[name];
@@ -569,12 +566,14 @@
                 if (currentSum > 0) {
                     const correctionFactor = route.total_dist / currentSum;
                     for(const name in route.result) {
-                        route.result[name] *= correctionFactor;
+                        if (route.allowed.includes(name)) {
+                           route.result[name] *= correctionFactor;
+                        }
                     }
                 }
             });
             
-            // Final integer rounding and correction
+            // Final integer rounding and correction for columns
             for(const name in masterSegments) {
                 const totalForSegment = Math.round(masterSegments[name] || 0);
                 let currentTotal = 0;
@@ -583,6 +582,7 @@
                 if(diff !== 0) { const eligibleRoutes = routes.filter(r => r.allowed.includes(name)); if(eligibleRoutes.length > 0) { for(let i=0; i < Math.abs(diff); i++){ const routeToAdjust = eligibleRoutes[i % eligibleRoutes.length]; if (routeToAdjust.result[name] + Math.sign(diff) >= 0) { routeToAdjust.result[name] += Math.sign(diff); } } } }
             }
 
+            // Final correction for rows
             routes.forEach(route => {
                 const currentRouteSum = Object.values(route.result).reduce((sum, dist) => sum + dist, 0);
                 let routeDiff = Math.round(route.total_dist) - currentRouteSum;
