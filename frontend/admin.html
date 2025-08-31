@@ -13,7 +13,7 @@
         input { -webkit-appearance: none; background-color: #2e2e2e; color: var(--fg-color); width: 100%; padding: 0.625rem; border-radius: 0.5rem; border: 1px solid #555; font-size: 1rem; margin-bottom: 0.75rem; box-sizing: border-box; }
         .btn { background-color: var(--btn-bg); color: var(--fg-color); width: 100%; padding: 0.75rem; border-radius: 0.5rem; text-align: center; font-size: 1rem; cursor: pointer; border: none; }
         .btn-primary { background-color: #3a5a9a; font-weight: 700; }
-        .message { text-align: center; margin-top: 1rem; font-weight: bold; }
+        .message { text-align: center; margin-top: 1rem; font-weight: bold; min-height: 1.2em; }
         .success { color: var(--success-color); }
         .error { color: var(--error-color); }
     </style>
@@ -51,39 +51,53 @@
     </div>
 
     <script>
-        // ВАЖЛИВО: Цю адресу ми змінимо на реальну, коли розмістимо сервер на хостингу
-        const API_URL = 'http://localhost:3000'; // Поки що для тестування
+        // !!!!!!!!!! ВАШ ОНОВЛЕНИЙ АДРЕС СЕРВЕРА !!!!!!!!!!
+        const API_URL = 'https://fuel-calculator-backend-5h9m.onrender.com';
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         async function showMessage(elementId, text, isError = false) {
             const el = document.getElementById(elementId);
             el.textContent = text;
             el.className = 'message ' + (isError ? 'error' : 'success');
-            setTimeout(() => { el.textContent = ''; }, 4000); // Повідомлення зникне через 4 секунди
+            setTimeout(() => { el.textContent = ''; }, 4000);
+        }
+
+        async function handleRequest(button, messageId, url, body) {
+            button.disabled = true;
+            button.textContent = 'Обробка...';
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message);
+                showMessage(messageId, data.message);
+                return true;
+            } catch (error) {
+                showMessage(messageId, `Помилка: ${error.message}`, true);
+                return false;
+            } finally {
+                button.disabled = false;
+            }
         }
 
         async function addUser() {
             const username = document.getElementById('newUserPhone').value;
             const password = document.getElementById('newUserPassword').value;
+            const button = event.target;
+            button.textContent = '+ Створити водія';
 
             if (!username || !password) {
                 showMessage('userMessage', 'Заповніть усі поля!', true);
                 return;
             }
 
-            try {
-                const response = await fetch(`${API_URL}/admin/users`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.message);
-
-                showMessage('userMessage', data.message);
+            const success = await handleRequest(button, 'userMessage', `${API_URL}/admin/users`, { username, password });
+            if (success) {
                 document.getElementById('newUserPhone').value = '';
                 document.getElementById('newUserPassword').value = '';
-            } catch (error) {
-                showMessage('userMessage', `Помилка: ${error.message}`, true);
             }
         }
 
@@ -100,30 +114,23 @@
                 carName: document.getElementById('carName').value,
                 carInfo: carInfo
             };
+            const button = event.target;
+            button.textContent = '+ Додати авто';
 
             if (!carData.subdivision || !carData.type || !carData.carName || !carInfo.consumption || !carInfo.engine_type) {
                 showMessage('carMessage', 'Заповніть усі поля!', true);
                 return;
             }
 
-            try {
-                const response = await fetch(`${API_URL}/admin/cars`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(carData)
-                });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.message);
-
-                showMessage('carMessage', data.message);
-                // Очищуємо поля
+            const success = await handleRequest(button, 'carMessage', `${API_URL}/admin/cars`, carData);
+            if (success) {
                 document.getElementById('carSubdivision').value = '';
                 document.getElementById('carType').value = '';
                 document.getElementById('carName').value = '';
                 document.getElementById('carConsumption').value = '';
                 document.getElementById('carEngine').value = '';
-            } catch (error) {
-                showMessage('carMessage', `Помилка: ${error.message}`, true);
+                document.getElementById('carAircon').checked = false;
+                document.getElementById('carCargo').checked = false;
             }
         }
     </script>
