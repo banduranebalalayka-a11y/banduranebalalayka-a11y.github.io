@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <title>Калькулятор пального</title>
+    <style>
+        :root { --bg-color: #2e2e2e; --fg-color: #ffffff; --entry-bg: #3e3e3e; --btn-bg: #4e4e4e; --success-color: #60a860; --error-color: #c06060; }
+        body { margin: 0; line-height: inherit; background-color: var(--bg-color); color: var(--fg-color); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+        .screen { display: none; padding: 1rem; min-height: 100vh; box-sizing: border-box; }
+        .active { display: block !important; }
+        h1, h2 { text-align: center; }
+        .btn { background-color: var(--btn-bg); color: var(--fg-color); width: 100%; padding: 0.75rem; border-radius: 0.5rem; text-align: center; font-size: 1rem; margin-bottom: 0.5rem; cursor: pointer; border: none; }
+        .btn-primary { background-color: var(--success-color); font-weight: 700; }
+        .btn-back { background-color: #666; }
+        input[type="text"], input[type="password"], input[type="number"] { -webkit-appearance: none; background-color: var(--entry-bg); color: var(--fg-color); width: 100%; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #555; font-size: 1rem; box-sizing: border-box; margin-bottom: 1rem;}
+        .error-message { color: var(--error-color); text-align: center; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <div id="screen-login" class="screen active">
+            <h1>Авторизація</h1>
+            <input type="text" id="login-username" placeholder="Номер телефону (093...)" inputmode="tel">
+            <input type="password" id="login-password" placeholder="Пароль">
+            <button class="btn btn-primary" onclick="handleLogin()">Увійти</button>
+            <p id="login-error" class="error-message"></p>
+        </div>
+
+        <div id="screen-subdivision" class="screen">
+            <h2>Виберіть підрозділ</h2>
+            <div id="subdivision-buttons"></div>
+            <button class="btn btn-back" onclick="logout()">Вийти</button>
+        </div>
+
+        <div id="screen-type" class="screen">
+            <h2 id="type-header"></h2>
+            <div id="type-buttons"></div>
+            <button class="btn btn-back" onclick="showScreen('screen-subdivision')">Назад</button>
+        </div>
+
+        <div id="screen-car" class="screen">
+            <h2 id="car-header"></h2>
+            <div id="car-buttons"></div>
+            <button class="btn btn-back" onclick="showScreen('screen-type')">Назад</button>
+        </div>
+
+        <div id="screen-calculator" class="screen">
+            <h2 id="calculator-header">Калькулятор</h2>
+            <div id="calculator-content"></div>
+            <button class="btn btn-back" onclick="showScreen('screen-car')">Назад</button>
+        </div>
+    </div>
+
+    <script>
+        // ===============================================================
+        // !!! ВАЖЛИВО: Вставте сюди ваше посилання на сервер з Render.com
+        // ===============================================================
+        const API_URL = 'https://YOUR-SERVER-NAME.onrender.com';
+        // ===============================================================
+
+        let CARS_DATA = {};
+        let state = {};
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        async function handleLogin() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+            errorEl.textContent = '';
+
+            if (!username || !password) {
+                errorEl.textContent = 'Введіть логін та пароль.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Помилка авторизації');
+                }
+
+                CARS_DATA = data.carsData;
+                localStorage.setItem('user', JSON.stringify({ username, password }));
+                renderSubdivisions();
+                showScreen('screen-subdivision');
+
+            } catch (error) {
+                errorEl.textContent = error.message;
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('user');
+            CARS_DATA = {};
+            state = {};
+            document.getElementById('login-password').value = '';
+            showScreen('screen-login');
+        }
+
+        function renderSubdivisions() {
+            const container = document.getElementById('subdivision-buttons');
+            container.innerHTML = '';
+            for (const subdivision in CARS_DATA) {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.textContent = subdivision;
+                btn.onclick = () => {
+                    state.subdivision = subdivision;
+                    renderTypes(subdivision);
+                    showScreen('screen-type');
+                };
+                container.appendChild(btn);
+            }
+        }
+        
+        function renderTypes(subdivision) {
+            const container = document.getElementById('type-buttons');
+            container.innerHTML = '';
+            document.getElementById('type-header').textContent = subdivision;
+            const types = CARS_DATA[subdivision];
+            for (const type in types) {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.textContent = type;
+                btn.onclick = () => {
+                    state.type = type;
+                    renderCars(subdivision, type);
+                    showScreen('screen-car');
+                };
+                container.appendChild(btn);
+            }
+        }
+        
+        function renderCars(subdivision, type) {
+            const container = document.getElementById('car-buttons');
+            container.innerHTML = '';
+            document.getElementById('car-header').textContent = `${subdivision} - ${type}`;
+            const cars = CARS_DATA[subdivision][type];
+            for (const carName in cars) {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.textContent = carName;
+                btn.onclick = () => {
+                    state.carName = carName;
+                    state.carInfo = cars[carName];
+                    // Тут має бути виклик функції для рендеру калькулятора
+                    alert(`Обрано авто: ${carName}`);
+                    // showScreen('screen-calculator');
+                };
+                container.appendChild(btn);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user && user.username && user.password) {
+                document.getElementById('login-username').value = user.username;
+                document.getElementById('login-password').value = user.password;
+                handleLogin();
+            } else {
+                showScreen('screen-login');
+            }
+        });
+    </script>
+</body>
+</html>
