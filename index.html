@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
@@ -72,7 +72,7 @@
         #dist-table .header { background-color: var(--btn-bg); font-weight: bold; position: sticky; top: 0; z-index: 10; text-align: center;}
         #dist-table .cell { padding: 8px 4px; border-bottom: 1px solid #444; border-right: 1px solid #444; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         #dist-table .cell:last-child { border-right: none; }
-        #dist-table .cell input[type=number] { width: 60px; padding: 4px; text-align: center; font-size: 0.8rem; }
+        #dist-table .cell input[type=number] { width: 60px; padding: 4px; text-align: center; font-size: 16px; }
         .dist-footer { padding-top: 1rem; font-size: 0.9rem; }
         #check-update-btn { background-color: #00695C; font-weight: bold; }
         
@@ -89,6 +89,19 @@
 
         @media (orientation: landscape) and (max-device-width: 930px) {
             body { font-size: 13px; }
+        }
+        
+        @media (orientation: landscape) and (max-device-height: 500px) {
+            #distribution-modal .modal-content {
+                width: 95vw;
+                height: 90vh;
+                max-width: 95vw;
+                padding: 0.75rem;
+            }
+            #distribution-modal h2 {
+                font-size: 1rem;
+                margin-bottom: 0.5rem;
+            }
         }
     </style>
 </head>
@@ -203,9 +216,8 @@
 
     <script>
         // --- НАЛАШТУВАННЯ ДЛЯ ЗВОРОТНОГО ЗВ'ЯЗКУ ---
-        const TELEGRAM_BOT_TOKEN = '8120956220:AAHL6ZDq6GNi3lIPmq1D564yOLvbwz98YUE'; // Отримати у @BotFather
-        const TELEGRAM_CHAT_ID = '415458339'; // Отримати у @userinfobot
-
+        const TELEGRAM_BOT_TOKEN = '8120956220:AAHL6ZDq6GNi3lIPmq1D564yOLvbwz98YUE'; // Отримати у @BotFather 
+		const TELEGRAM_CHAT_ID = '415458339'; // Отримати у @userinfobot
         // --- DATA AND CONSTANTS ---
         const INITIAL_CARS_DATA = {
             "Управління": { "Легкова": { "Toyota Hilux 6286 Г2": {"consumption": 10.5, "aircon": true, "cargo": false, "engine_type": "дизель"} } },
@@ -554,7 +566,7 @@
 
             const fuelDifference = totalValidatedFuel - targetFuel;
             finalReport += "\n\n" + "=".repeat(80) + "\n" + "ФІНАЛЬНА ПЕРЕВІРКА".padStart(48) + "\n" + "=".repeat(80);
-            if (Math.abs(fuelDifference) > 0.7) {
+            if (Math.abs(fuelDifference) > 0.5) {
                 finalReport += `\n\n(❌ ПОМИЛКА): Виявлено розбіжність.\n- Загальна витрата по маршрутах (${totalValidatedFuel.toFixed(2)} л) не збігається з метою (${targetFuel.toFixed(2)} л).`;
             } else {
                 finalReport += "\n\n(✓ УСПІХ): Усі розрахунки збігаються.";
