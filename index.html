@@ -20,15 +20,7 @@
         hr { border-top: 1px solid #4a4a4a; margin: 1.5rem 0; }
         sub { font-size: 0.7em; vertical-align: sub; line-height: 0; position: relative; top: 0.2em; }
         .active { display: block !important; }
-        .screen { 
-            display: none; 
-            padding: 1rem; 
-            min-height: 100vh;
-            padding-top: calc(1rem + env(safe-area-inset-top));
-            padding-bottom: calc(1rem + env(safe-area-inset-bottom));
-            padding-left: calc(1rem + env(safe-area-inset-left));
-            padding-right: calc(1rem + env(safe-area-inset-right));
-        }
+        .screen { display: none; padding: 1rem; min-height: 100vh; padding-top: calc(1rem + env(safe-area-inset-top)); padding-bottom: calc(1rem + env(safe-area-inset-bottom)); padding-left: calc(1rem + env(safe-area-inset-left)); padding-right: calc(1rem + env(safe-area-inset-right)); }
         .btn { background-color: var(--btn-bg); color: var(--fg-color); width: 100%; padding: 0.75rem; border-radius: 0.5rem; text-align: center; font-size: 1rem; margin-bottom: 0.5rem; cursor: pointer; transition: transform 0.1s, filter 0.1s; }
         .btn:active { transform: scale(0.98); filter: brightness(0.9); }
         .btn-instruction { background-color: #3a5a9a; font-weight: 700; }
@@ -82,7 +74,8 @@
         #report-modal .modal-content { position: relative; width: 95vw; height: 95vh; background: var(--bg-color); padding: 0; overflow: hidden; }
         #report-frame { width: 100%; height: 100%; border: none; }
         .close-btn { position: absolute; top: 5px; right: 8px; font-size: 2rem; color: #fff; background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 32px; height: 32px; line-height: 30px; text-align: center; cursor: pointer; z-index: 120; font-weight: 300; }
-
+        @media (min-width: 769px) { #report-modal .modal-content { width: 95%; max-width: 1600px; } }
+        
         /* -- Update Notification Styles -- */
         #update-notification { display: none; position: fixed; bottom: 10px; left: 10px; right: 10px; background-color: #3a5a9a; color: white; padding: 1rem; border-radius: 0.5rem; z-index: 200; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
         #update-notification .btn-group { display: flex; gap: 10px; margin-top: 10px; justify-content: center; }
@@ -189,7 +182,6 @@
                 <div class="btn btn-back mt-2" onclick="closeModal('feedback-modal')">Закрити</div>
             </div>
         </div>
-
     </div>
 
     <div id="update-notification">
@@ -248,9 +240,7 @@
             if(alertTitle) alertTitle.textContent = title;
             if(alertMessage) alertMessage.textContent = message;
             
-            // Reset button behavior
             alertButton.onclick = () => closeModal('alert-modal');
-
             openModal('alert-modal');
         }
 
@@ -419,9 +409,41 @@
 
         function generateFormulaString(custom_segments, custom_dist, custom_cargo, custom_one_way) { try { const values = getValues(); const { total_fuel, total_dist } = getCurrentCalculation( custom_segments || values.segments, custom_dist, custom_cargo, custom_one_way ); const base_rate_100km = state.carInfo.consumption; const additive_parts = Object.entries(values.additives).filter(([_, checked]) => checked).map(([name, _]) => `${(ADDITIVE_COEFFS[name]*100).toFixed(0)}%`); const k_add_sum = Object.entries(values.additives).reduce((sum, [name, checked]) => sum + (checked ? ADDITIVE_COEFFS[name] : 0), 0); const final_rate = base_rate_100km * (1 + k_add_sum); const formula1 = `Базова лінійна норма витрат ${base_rate_100km.toFixed(2)}л/100км + ${additive_parts.length > 0 ? additive_parts.join(' + ') : '0%'} = ${final_rate.toFixed(2)}л/100км.`; const road_str_parts = []; const template_coeffs = [0.85, 0.9, 1.0, 1.05, 1.1, 1.15, 1.25, 1.3, 1.35]; const coeff_to_name_map = Object.fromEntries(Object.entries(ROAD_COEFFS).map(([k,v]) => [v,k])); const segments_to_use = custom_segments || values.segments; for (const coeff of template_coeffs) { let dist_found = 0; if(coeff_to_name_map[coeff] && segments_to_use[coeff_to_name_map[coeff]]) { dist_found = segments_to_use[coeff_to_name_map[coeff]]; } road_str_parts.push(`(${String(coeff).replace('.',',')}x${Math.round(dist_found)})`); } const road_str = road_str_parts.join('+'); const cargo_w = custom_cargo ?? values.cargo_weight; const one_way = custom_one_way ?? values.cargo_one_way; const cargo_str = isNaN(cargo_w) || cargo_w === 0 ? "" : `+1,3*(${cargo_w.toFixed(1)}т${one_way ? '/2' : ''})`; const formula2 = `Всього ${Math.round(total_dist)}км; (${final_rate.toFixed(2)}л/100км${cargo_str})x((${road_str}))x0,01=${total_fuel.toFixed(2)}л;`; return {formula1, formula2, total_fuel}; } catch (e) { console.error("Formula generation error:", e); return { formula1: "Помилка при генерації формули.", formula2: "", total_fuel: 0 }; } }
         
+        function generateTemplateReport(data) {
+            const v = (value, decimals = 0) => {
+                const num = parseFloat(value);
+                if (isNaN(num)) return '___';
+                return `<span class="value">${num.toFixed(decimals)}</span>`;
+            };
+            
+            const s = (segment_name) => {
+                const dist = Math.round(data.segments[segment_name] || 0);
+                return `<span class="value">${dist > 0 ? dist : '___'}</span>`;
+            };
+
+            const cargoText = data.isCargoCar ? `+1,3*(${v(data.cargo_weight, 2)} т${data.cargo_one_way ? '/2' : ''})` : '';
+
+            return `${v(data.total_dist,0)} км; (${v(data.base_rate,2)} л/100км${cargoText})×((0,85×${s("Рух по дорозі з покращеним покриттям")})+(0,9×___)+(1,0×___)+(1,05×${s("Села, Селища, СМТ, малі міста")})+(1,1×${s("Великі міста, обласні центри")})+(1,15×${s("Київ, Дніпро, Харків і подібні")})+(1,25×${s("По бруково-щебневому шосе і твердій степовій цілині")})+(1,3×${s("По ґрунтових дорогах і дорогах з закріпленими пісками")})+(1,35×${s("У важких дорожніх умовах (бездоріжжя, сніг, пісок)")}))×0,01 = ${v(data.total_fuel, 2)} л;`;
+        }
+
         function showFormula() { 
-            const { formula1, formula2 } = generateFormulaString();
-            const reportContent = `${formula1}\n\n${formula2}`;
+            const values = getValues();
+            const { total_fuel, total_dist } = getCurrentCalculation(values.segments);
+            const { formula1 } = generateFormulaString();
+
+            const reportData = {
+                base_rate: state.carInfo.consumption,
+                total_dist: total_dist,
+                cargo_weight: values.cargo_weight,
+                cargo_one_way: values.cargo_one_way,
+                isCargoCar: state.carInfo.cargo,
+                segments: values.segments,
+                total_fuel: total_fuel
+            };
+            
+            const templateLine = generateTemplateReport(reportData);
+            const reportContent = `${formula1}\n\n${templateLine}`;
+            
             showReport(reportContent);
         }
 
@@ -434,13 +456,14 @@
                     <html lang="uk">
                     <head>
                         <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=0.5, maximum-scale=5.0">
                         <style>
-                            body { background-color: #ffffff; color: #000000; font-family: 'Courier New', Courier, monospace; font-size: 14px; line-height: 1.15; margin: 15px; }
-                            pre { margin: 0; white-space: pre; overflow-x: auto; }
+                            body { background-color: #ffffff; color: #000000; font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 14px; line-height: 1.5; margin: 15px; }
+                            pre { margin: 0; white-space: pre; overflow-x: auto; font-family: inherit; }
+                            .value { color: #D32F2F; font-weight: bold; }
                         </style>
                     </head>
-                    <body><pre>${reportContent.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre></body>
+                    <body><pre>${reportContent.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/___/g, '<span class="value">___</span>')}</pre></body>
                     </html>
                 `;
                 document.getElementById('report-frame').srcdoc = reportHtml;
@@ -477,14 +500,35 @@
             routes.forEach(route => { const currentSum = Object.values(route.result).reduce((s, d) => s + d, 0); if (currentSum > 0) { const correctionFactor = route.total_dist / currentSum; for(const name in route.result) { route.result[name] *= correctionFactor; } } });
             for(const name in masterSegments) { const totalForSegment = Math.round(masterSegments[name] || 0); let currentTotal = 0; routes.forEach(r => { r.result[name] = Math.round(r.result[name]); currentTotal += r.result[name]; }); let diff = totalForSegment - currentTotal; if(diff !== 0) { const eligibleRoutes = routes.filter(r => r.allowed.includes(name)); if(eligibleRoutes.length > 0) { for(let i=0; i < Math.abs(diff); i++){ const routeToAdjust = eligibleRoutes[i % eligibleRoutes.length]; if (routeToAdjust.result[name] + Math.sign(diff) >= 0) { routeToAdjust.result[name] += Math.sign(diff); } } } } }
             routes.forEach(route => { const currentRouteSum = Object.values(route.result).reduce((sum, dist) => sum + dist, 0); let routeDiff = Math.round(route.total_dist) - currentRouteSum; if (routeDiff !== 0) { const eligibleSegments = route.allowed.filter(name => (route.result[name] > 0 || routeDiff > 0)); if (eligibleSegments.length > 0) { for (let i = 0; i < Math.abs(routeDiff); i++) { const segmentToAdjust = eligibleSegments[i % eligibleSegments.length]; if (route.result[segmentToAdjust] + Math.sign(routeDiff) >= 0) { route.result[segmentToAdjust] += Math.sign(routeDiff); } else { const anotherSegment = eligibleSegments[(i + 1) % eligibleSegments.length]; if(anotherSegment && route.result[anotherSegment] + Math.sign(routeDiff) >= 0) { route.result[anotherSegment] += Math.sign(routeDiff); } } } } } });
-            const { formula1 } = generateFormulaString(); let report = `${formula1}\nВсього витрата (мета): ${targetFuel.toFixed(2)} л\n\n` + "=".repeat(80) + "\n" + "РОЗПОДІЛ ПО МАРШРУТАХ".padStart(50) + "\n" + "=".repeat(80);
-            let validationErrors = []; let totalValidatedFuel = 0; let validatedSegments = Object.fromEntries(SEGMENT_ORDER.map(name => [name, 0]));
-            routes.forEach(route => { const { formula2, total_fuel } = generateFormulaString(route.result, route.total_dist, route.cargo, route.one_way); report += `\n\nМаршрут ${route.id} - ${formula2}`; totalValidatedFuel += total_fuel; for(const name in route.result) { validatedSegments[name] += route.result[name]; } });
-            const fuelDifference = totalValidatedFuel - targetFuel; if (Math.abs(fuelDifference) > 0.5) { let errorMessage = `- Загальна витрата по маршрутах (${totalValidatedFuel.toFixed(2)} л) не збігається з метою (${targetFuel.toFixed(2)} л).`; if (Math.abs(fuelDifference) >= 2.0) { errorMessage = `‼️ УВАГА: СУТТЄВА РОЗБІЖНІСТЬ!\n${errorMessage}`; } validationErrors.push(errorMessage); }
-            for(const name in masterSegments) { if (Math.abs(validatedSegments[name] - Math.round(masterSegments[name])) > 0) { validationErrors.push(`- Розподіл по "${name}" (${validatedSegments[name]} км) не збігається з головним екраном (${Math.round(masterSegments[name])} км).`); } }
-            report += "\n\n" + "=".repeat(80) + "\n" + "ФІНАЛЬНА ПЕРЕВІРКА".padStart(48) + "\n" + "=".repeat(80) + "\n";
-            if (validationErrors.length === 0) { report += "\n(✓ УСПІХ): Усі розрахунки збігаються. Формули перераховані та відповідають дійсності."; } else { report += "\n(❌ ПОМИЛКА): Виявлено розбіжності в розрахунках:\n" + validationErrors.join("\n"); }
-            showReport(report);
+            
+            const { formula1 } = generateFormulaString();
+            let finalReport = `${formula1}\nВсього витрата (мета): ${targetFuel.toFixed(2)} л\n\n` + "=".repeat(80) + "\n" + "РОЗПОДІЛ ПО МАРШРУТАХ".padStart(50) + "\n" + "=".repeat(80);
+            
+            let totalValidatedFuel = 0;
+            routes.forEach((route, index) => {
+                 const { total_fuel } = getCurrentCalculation(route.result, route.total_dist, route.cargo, route.one_way);
+                 const routeDataForTemplate = {
+                    base_rate: state.carInfo.consumption,
+                    total_dist: route.total_dist,
+                    cargo_weight: route.cargo,
+                    cargo_one_way: route.one_way,
+                    isCargoCar: state.carInfo.cargo,
+                    segments: route.result,
+                    total_fuel: total_fuel
+                 };
+                 finalReport += `\n\n${index + 1}. ${generateTemplateReport(routeDataForTemplate)}`;
+                 totalValidatedFuel += total_fuel;
+            });
+
+            const fuelDifference = totalValidatedFuel - targetFuel;
+            finalReport += "\n\n" + "=".repeat(80) + "\n" + "ФІНАЛЬНА ПЕРЕВІРКА".padStart(48) + "\n" + "=".repeat(80);
+            if (Math.abs(fuelDifference) > 0.5) {
+                finalReport += `\n\n(❌ ПОМИЛКА): Виявлено розбіжність.\n- Загальна витрата по маршрутах (${totalValidatedFuel.toFixed(2)} л) не збігається з метою (${targetFuel.toFixed(2)} л).`;
+            } else {
+                finalReport += "\n\n(✓ УСПІХ): Усі розрахунки збігаються.";
+            }
+
+            showReport(finalReport);
         }
 
         async function sendFeedback() {
@@ -493,7 +537,7 @@
                 showAlert('Будь ласка, введіть текст вашої пропозиції.');
                 return;
             }
-            if (TELEGRAM_BOT_TOKEN === '8120956220:AAHL6ZDq6GNi3lIPmq1D564yOLvbwz98YUE' || TELEGRAM_CHAT_ID === '415458339') {
+            if (TELEGRAM_BOT_TOKEN === 'СЮДИ ВСТАВИТИ ВАШ ТОКЕН' || TELEGRAM_CHAT_ID === 'СЮДИ ВСТАВИТИ ID ВАШОГО ЧАТУ') {
                 showAlert('Функція зворотного зв\'язку не налаштована розробником.', 'Помилка');
                 return;
             }
