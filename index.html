@@ -91,21 +91,21 @@
             body { font-size: 13px; }
         }
         
-        @media (orientation: landscape) and (max-device-height: 500px) {
+        @media (orientation: landscape) and (max-height: 500px) {
             #distribution-modal .modal-content {
                 width: 95vw;
                 height: 95vh;
                 max-width: 95vw;
                 padding: 1rem;
                 display: grid;
-                grid-template-columns: 1fr auto;
+                grid-template-columns: 1fr 180px;
                 grid-template-rows: auto 1fr;
-                gap: 1rem;
+                gap: 0.5rem 1rem;
                 align-items: start;
             }
             #distribution-modal .title-wrapper {
-                grid-column: 1 / -1;
-                margin-bottom: 0.5rem;
+                grid-column: 1 / 3; /* Title spans both columns */
+                margin-bottom: 0;
             }
             #distribution-modal h2 {
                 font-size: 1.1rem;
@@ -242,8 +242,8 @@
 
     <script>
         // --- НАЛАШТУВАННЯ ДЛЯ ЗВОРОТНОГО ЗВ'ЯЗКУ ---
-        const TELEGRAM_BOT_TOKEN = '8120956220:AAHL6ZDq6GNi3lIPmq1D564yOLvbwz98YUE'; // Отримати у @BotFather 
-		const TELEGRAM_CHAT_ID = '415458339'; // Отримати у @userinfobot
+        const TELEGRAM_BOT_TOKEN = 'СЮДИ ВСТАВИТИ ВАШ ТОКЕН'; // Отримати у @BotFather
+        const TELEGRAM_CHAT_ID = 'СЮДИ ВСТАВИТИ ID ВАШОГО ЧАТУ'; // Отримати у @userinfobot
 
         // --- DATA AND CONSTANTS ---
         const INITIAL_CARS_DATA = {
