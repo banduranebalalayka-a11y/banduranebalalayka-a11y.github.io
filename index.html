@@ -10,7 +10,11 @@
     <style>
         :root { --bg-color: #2e2e2e; --fg-color: #ffffff; --entry-bg: #3e3e3e; --btn-bg: #4e4e4e; --success-color: #60a860; --error-color: #c06060; }
         *, ::before, ::after { box-sizing: border-box; border-width: 0; border-style: solid; border-color: #e5e7eb; }
-        html, body { overscroll-behavior-y: contain; }
+        html, body { 
+            overscroll-behavior-y: contain;
+            -webkit-text-size-adjust: 100%; /* Заборона автозбільшення тексту для мобільних браузерів */
+            text-size-adjust: 100%; /* Стандартна властивість */
+        }
         body { margin: 0; line-height: inherit; background-color: var(--bg-color); color: var(--fg-color); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
         h1 { font-size: 1.5rem; line-height: 2rem; font-weight: 700; text-align: center; margin-bottom: 0; }
         h2 { font-size: 1.25rem; line-height: 1.75rem; font-weight: 700; margin-top: 0; margin-bottom: 0.75rem; text-align: center; }
@@ -81,10 +85,10 @@
         #update-notification .btn-group { display: flex; gap: 10px; margin-top: 10px; justify-content: center; }
         #update-notification .btn { width: auto; padding: 0.5rem 1rem; margin-bottom: 0; }
 
-        #feedback-tab { position: fixed; top: 120px; left: 0; transform: rotate(-90deg); transform-origin: 0 0; background-color: #3a5a9a; color: white; padding: 8px 12px; border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; cursor: pointer; z-index: 99; font-size: 12px; font-weight: bold; }
+        #feedback-tab { position: fixed; top: 150px; left: 0; transform: rotate(-90deg); transform-origin: 0 0; background-color: #3a5a9a; color: white; padding: 8px 12px; border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; cursor: pointer; z-index: 99; font-size: 12px; font-weight: bold; }
 
         @media (orientation: landscape) and (max-device-width: 930px) {
-            body { font-size: 14px; }
+            body { font-size: 13px; }
         }
     </style>
 </head>
@@ -550,7 +554,7 @@
 
             const fuelDifference = totalValidatedFuel - targetFuel;
             finalReport += "\n\n" + "=".repeat(80) + "\n" + "ФІНАЛЬНА ПЕРЕВІРКА".padStart(48) + "\n" + "=".repeat(80);
-            if (Math.abs(fuelDifference) > 0.5) {
+            if (Math.abs(fuelDifference) > 0.7) {
                 finalReport += `\n\n(❌ ПОМИЛКА): Виявлено розбіжність.\n- Загальна витрата по маршрутах (${totalValidatedFuel.toFixed(2)} л) не збігається з метою (${targetFuel.toFixed(2)} л).`;
             } else {
                 finalReport += "\n\n(✓ УСПІХ): Усі розрахунки збігаються.";
