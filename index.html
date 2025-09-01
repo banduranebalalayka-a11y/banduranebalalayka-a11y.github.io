@@ -91,42 +91,42 @@
             body { font-size: 13px; }
         }
         
-        @media (orientation: landscape) and (max-height: 500px) {
-            #distribution-modal .modal-content {
-                width: 95vw;
-                height: 95vh;
-                max-width: 95vw;
-                padding: 1rem;
-                display: grid;
-                grid-template-columns: 1fr 180px;
-                grid-template-rows: auto 1fr;
-                gap: 0.5rem 1rem;
-                align-items: start;
-            }
-            #distribution-modal .title-wrapper {
-                grid-column: 1 / 3; /* Title spans both columns */
-                margin-bottom: 0;
-            }
-            #distribution-modal h2 {
-                font-size: 1.1rem;
-                margin-bottom: 0;
-            }
-            #dist-table-container {
-                grid-column: 1;
-                grid-row: 2;
-                align-self: stretch;
-            }
-            .dist-controls {
-                grid-column: 2;
-                grid-row: 2;
-                display: flex;
-                flex-direction: column;
-                height: 100%;
-            }
-            .dist-controls .dist-footer {
-                flex-grow: 1;
-            }
-        }
+        @media (min-width: 992px) {
+		    #distribution-modal .modal-content {
+		        width: 95vw;
+		        height: 90vh;
+		        max-width: 1600px;
+		        padding: 1rem;
+		        display: grid;
+		        grid-template-columns: 1fr 200px; /* Таблиця | Блок кнопок */
+		        grid-template-rows: auto 1fr;   /* Заголовок | Контент */
+		        gap: 0.5rem 1.5rem;
+		        align-items: start;
+		    }
+		    #distribution-modal .title-wrapper {
+		        grid-column: 1 / 3; /* Заголовок на всю ширину */
+		        margin-bottom: 0;
+		    }
+		    #distribution-modal h2 {
+		        font-size: 1.25rem;
+		        margin-bottom: 0;
+		    }
+		    #dist-table-container {
+		        grid-column: 1;
+		        grid-row: 2;
+		        align-self: stretch;
+		    }
+		    .dist-controls {
+		        grid-column: 2;
+		        grid-row: 2;
+		        display: flex;
+		        flex-direction: column;
+		        height: 100%;
+		    }
+		    .dist-controls .dist-footer {
+		        flex-grow: 1; /* Притискає кнопки до низу */
+		    }
+		}
     </style>
 </head>
 <body class="antialiased">
