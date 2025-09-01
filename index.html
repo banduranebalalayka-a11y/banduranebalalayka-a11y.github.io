@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
@@ -81,7 +81,7 @@
         #update-notification .btn-group { display: flex; gap: 10px; margin-top: 10px; justify-content: center; }
         #update-notification .btn { width: auto; padding: 0.5rem 1rem; margin-bottom: 0; }
 
-        #feedback-tab { position: fixed; top: 50%; right: 0; transform: translateY(-50%) rotate(-90deg) translateX(50%); transform-origin: bottom right; background-color: #3a5a9a; color: white; padding: 8px 15px; border-top-left-radius: 8px; border-top-right-radius: 8px; cursor: pointer; z-index: 99; font-weight: bold; }
+        #feedback-tab { position: fixed; top: 10px; left: 10px; background-color: #3a5a9a; color: white; padding: 4px 8px; border-radius: 6px; cursor: pointer; z-index: 99; font-size: 12px; font-weight: bold; }
     </style>
 </head>
 <body class="antialiased">
@@ -195,8 +195,8 @@
 
     <script>
         // --- НАЛАШТУВАННЯ ДЛЯ ЗВОРОТНОГО ЗВ'ЯЗКУ ---
-        const TELEGRAM_BOT_TOKEN = '8120956220:AAHL6ZDq6GNi3lIPmq1D564yOLvbwz98YUE'; // Отримати у @BotFather
-        const TELEGRAM_CHAT_ID = '415458339'; // Отримати у @userinfobot
+        const TELEGRAM_BOT_TOKEN = 'СЮДИ ВСТАВИТИ ВАШ ТОКЕН'; // Отримати у @BotFather
+        const TELEGRAM_CHAT_ID = 'СЮДИ ВСТАВИТИ ID ВАШОГО ЧАТУ'; // Отримати у @userinfobot
 
         // --- DATA AND CONSTANTS ---
         const INITIAL_CARS_DATA = {
@@ -285,14 +285,14 @@
 	P.S. Цей калькулятор — це як твоя мама: він не дає тобі зайвих питань, але завжди каже тобі, що ти робиш щось не так.`;
             instructionBtn.onclick = () => showHelp('ІНСТРУКЦІЯ', instructionText);
             container.appendChild(instructionBtn);
-
+            
             const updateBtn = document.createElement('div');
             updateBtn.className = 'btn';
             updateBtn.id = 'check-update-btn';
             updateBtn.textContent = 'Перевірити наявність оновлень';
             updateBtn.onclick = () => manualCheckForUpdates();
             container.appendChild(updateBtn);
-            
+
             const separator = document.createElement('hr');
             separator.style.margin = "1.5rem 0";
             container.appendChild(separator);
