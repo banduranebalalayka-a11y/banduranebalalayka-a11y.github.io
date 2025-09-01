@@ -94,17 +94,38 @@
         @media (orientation: landscape) and (max-device-height: 500px) {
             #distribution-modal .modal-content {
                 width: 95vw;
-                height: 90vh;
+                height: 95vh;
                 max-width: 95vw;
-                padding: 0.75rem;
-                flex-direction: row;
+                padding: 1rem;
+                display: grid;
+                grid-template-columns: 1fr auto;
+                grid-template-rows: auto 1fr;
                 gap: 1rem;
+                align-items: start;
             }
-            #distribution-modal .title-wrapper { grid-column: 1 / -1; }
-            #distribution-modal h2 { font-size: 1rem; margin-bottom: 0.5rem; }
-            #dist-table-container { flex-grow: 1; height: 100%; }
-            .dist-controls { flex-shrink: 0; width: 160px; display: flex; flex-direction: column; }
-            .dist-controls .dist-footer { flex-grow: 1; }
+            #distribution-modal .title-wrapper {
+                grid-column: 1 / -1;
+                margin-bottom: 0.5rem;
+            }
+            #distribution-modal h2 {
+                font-size: 1.1rem;
+                margin-bottom: 0;
+            }
+            #dist-table-container {
+                grid-column: 1;
+                grid-row: 2;
+                align-self: stretch;
+            }
+            .dist-controls {
+                grid-column: 2;
+                grid-row: 2;
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+            }
+            .dist-controls .dist-footer {
+                flex-grow: 1;
+            }
         }
     </style>
 </head>
