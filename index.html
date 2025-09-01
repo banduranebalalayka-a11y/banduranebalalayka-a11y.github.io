@@ -40,7 +40,7 @@
         .input-wrapper input { flex-grow: 1; }
         .input-group label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
         .input-group label .label-text { flex: 1; margin-right: 10px; }
-        .input-group input[type="number"] { -webkit-appearance: none; background-color: var(--entry-bg); color: var(--fg-color); width: 100%; padding: 0.625rem; border-radius: 0.5rem; border: 1px solid #555; font-size: 1rem; }
+        .input-group input[type="number"], textarea { -webkit-appearance: none; background-color: var(--entry-bg); color: var(--fg-color); width: 100%; padding: 0.625rem; border-radius: 0.5rem; border: 1px solid #555; font-size: 1rem; }
         .switch-container { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; }
         .switch-container .label-text { flex: 1; margin-right: 10px; }
         .switch { position: relative; display: inline-block; width: 51px; height: 31px; flex-shrink: 0; }
@@ -55,16 +55,16 @@
         .result-diff { font-size: 1rem; line-height: 1.5rem; }
         .lock-icon { font-size: 0.8rem; }
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 100; }
-        #help-modal, #alert-modal, #formula-modal { z-index: 110; }
+        #help-modal, #alert-modal, #formula-modal, #feedback-modal, #report-modal, #distribution-modal { z-index: 110; }
         .modal-content { background-color: var(--bg-color); padding: 1.25rem; border-radius: 0.75rem; width: 90%; max-width: 500px; border: 1px solid #555; text-align: center; display: flex; flex-direction: column; max-height: 90vh; }
-        #help-message { max-height: 60vh; overflow-y: auto; white-space: pre-wrap; text-align: left !important; }
+        #help-message, #feedback-modal textarea { max-height: 60vh; overflow-y: auto; }
+        #feedback-modal textarea { height: 200px; margin-bottom: 1rem; resize: vertical; }
         .modal-content pre { flex-grow: 1; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; text-align: left; background-color: var(--entry-bg); padding: 0.625rem; border-radius: 0.5rem; }
         .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
         .mt-2 { margin-top: 0.5rem; } .mt-4 { margin-top: 1rem; } .mt-8 { margin-top: 2rem; }
         .mb-4 { margin-bottom: 1rem; }
         .text-center { text-align: center; }
         .text-xs { font-size: 0.75rem; line-height: 1rem; }
-        .text-gray-500 { color: #6b7280; }
         .font-bold { font-weight: 700; }
         .title-wrapper { display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; }
         .help-btn { display: inline-flex; justify-content: center; align-items: center; width: 24px; height: 24px; background-color: #555; color: white; border-radius: 50%; cursor: pointer; font-weight: bold; margin-left: 10px; flex-shrink: 0; transition: background-color 0.2s; user-select: none; }
@@ -77,6 +77,19 @@
         #dist-table .cell:last-child { border-right: none; }
         #dist-table .cell input[type=number] { width: 60px; padding: 4px; text-align: center; font-size: 0.8rem; }
         .dist-footer { padding-top: 1rem; font-size: 0.9rem; }
+
+        /* -- Report Modal Styles -- */
+        #report-modal .modal-content { position: relative; width: 95vw; height: 95vh; background: var(--bg-color); padding: 0; overflow: hidden; }
+        #report-frame { width: 100%; height: 100%; border: none; }
+        .close-btn { position: absolute; top: 5px; right: 8px; font-size: 2rem; color: #fff; background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 32px; height: 32px; line-height: 30px; text-align: center; cursor: pointer; z-index: 120; font-weight: 300; }
+
+        /* -- Update Notification Styles -- */
+        #update-notification { display: none; position: fixed; bottom: 10px; left: 10px; right: 10px; background-color: #3a5a9a; color: white; padding: 1rem; border-radius: 0.5rem; z-index: 200; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+        #update-notification .btn-group { display: flex; gap: 10px; margin-top: 10px; justify-content: center; }
+        #update-notification .btn { width: auto; padding: 0.5rem 1rem; margin-bottom: 0; }
+
+        /* -- Feedback Tab Styles -- */
+        #feedback-tab { position: fixed; top: 50%; right: -60px; transform: translateY(-50%) rotate(-90deg); background-color: #3a5a9a; color: white; padding: 10px 15px; border-top-left-radius: 8px; border-top-right-radius: 8px; cursor: pointer; z-index: 99; font-weight: bold; transform-origin: bottom right; }
     </style>
 </head>
 <body class="antialiased">
@@ -87,7 +100,7 @@
                 <div class="help-btn" onclick="showHelp('Крок 1', 'Понятно все з тобою, коротше читай інструкцію. Вона трошки нижче і написано ІНСТРУКЦІЯ.')">?</div>
             </div>
             <div id="subdivision-buttons"></div>
-            <p class="text-center text-xs text-gray-500 mt-8">created by Artem Bandura v1.0.0.3</p>
+            <p class="text-center text-xs mt-8">created by Artem Bandura</p>
         </div>
 
         <div id="screen-type" class="screen">
@@ -97,7 +110,7 @@
             </div>
             <div id="type-buttons"></div>
             <div class="btn btn-back mt-8" onclick="showScreen('screen-subdivision')">&lt; Назад</div>
-            <p class="text-center text-xs text-gray-500 mt-8">created by Artem Bandura v1.0.0.3</p>
+            <p class="text-center text-xs mt-8">created by Artem Bandura</p>
         </div>
 
         <div id="screen-car" class="screen">
@@ -107,14 +120,14 @@
             </div>
             <div id="car-buttons"></div>
             <div class="btn btn-back mt-8" onclick="showScreen('screen-type')">&lt; Назад</div>
-            <p class="text-center text-xs text-gray-500 mt-8">created by Artem Bandura v1.0.0.3</p>
+            <p class="text-center text-xs mt-8">created by Artem Bandura</p>
         </div>
 
         <div id="screen-calculator" class="screen">
             <div id="car-info" class="text-center mb-4"></div>
             <div class="btn btn-back" onclick="go_to_start()">Змінити авто</div>
             <div id="calculator-content"></div>
-            <p class="text-center text-xs text-gray-500 mt-8">created by Artem Bandura v1.0.0.3</p>
+            <p class="text-center text-xs mt-8">created by Artem Bandura</p>
         </div>
         
         <div id="formula-modal" class="modal">
@@ -146,7 +159,7 @@
             <div class="modal-content">
                 <div class="title-wrapper" style="margin-bottom: 1rem;">
                     <h2>Розподіл по маршрутах</h2>
-                    <div class="help-btn" onclick="showHelp('Розподіл по маршрутах', `Це найпотужніший інструмент у нашій програмі, який виконує складну роботу за вас. Головне завдання цього вікна — взяти загальні кілометри по кожному типу доріг, які ви підібрали на головному екрані, і 'розумно' розподілити їх між конкретними поїздками (маршрутами), враховуючи всі ваші умови.`)">?</div>
+                    <div class="help-btn" onclick="showHelp('Розподіл по маршрутах', `Це найпотужніший інструмент у нашій програмі...`)">?</div>
                 </div>
                 <div id="dist-table-container">
                     <div id="dist-table"></div>
@@ -160,11 +173,41 @@
                 <div class="btn btn-back mt-2" onclick="closeModal('distribution-modal')">Назад</div>
             </div>
         </div>
+
+        <div id="report-modal" class="modal">
+            <div class="modal-content" id="report-modal-content">
+                <div class="close-btn" onclick="closeModal('report-modal')">&times;</div>
+                <iframe id="report-frame" src="about:blank"></iframe>
+            </div>
+        </div>
+        
+        <div id="feedback-modal" class="modal">
+            <div class="modal-content">
+                <h2 class="mb-4">Анонімні пропозиції та запитання</h2>
+                <textarea id="feedback-text" placeholder="Ваш відгук допоможе зробити програму кращою..."></textarea>
+                <div class="btn btn-primary" onclick="sendFeedback()">Надіслати</div>
+                <div class="btn btn-back mt-2" onclick="closeModal('feedback-modal')">Закрити</div>
+            </div>
+        </div>
+
     </div>
 
+    <div id="update-notification">
+        <p>Гей, у мене є оновлення готове до встановлення</p>
+        <div class="btn-group">
+            <div id="update-accept" class="btn btn-primary">Встановити</div>
+            <div id="update-dismiss" class="btn btn-back">Ігнорувати</div>
+        </div>
+    </div>
+    
+    <div id="feedback-tab" onclick="openModal('feedback-modal')">Зворотний зв'язок</div>
+
     <script>
+        // --- НАЛАШТУВАННЯ ДЛЯ ЗВОРОТНОГО ЗВ'ЯЗКУ ---
+        const TELEGRAM_BOT_TOKEN = 'СЮДИ ВСТАВИТИ ВАШ ТОКЕН'; // Отримати у @BotFather
+        const TELEGRAM_CHAT_ID = 'СЮДИ ВСТАВИТИ ID ВАШОГО ЧАТУ'; // Отримати у @userinfobot
+
         // --- DATA AND CONSTANTS ---
-        // Початкові дані, які використовуються, якщо в пам'яті браузера нічого немає
         const INITIAL_CARS_DATA = {
             "Управління": { "Легкова": { "Toyota Hilux 6286 Г2": {"consumption": 10.5, "aircon": true, "cargo": false, "engine_type": "дизель"} } },
             "Відділення забезпечення": { "Бус": { "Renault Trafic 6313 Г2": {"consumption": 11, "aircon": false, "cargo": false, "engine_type": "дизель"} }, "Вантажівка": { "MAN TGS 33.400 6X6 6298 Г2": {"consumption": 32, "aircon": true, "cargo": true, "engine_type": "дизель"} } },
@@ -173,7 +216,6 @@
             "2 Рота": {"Легкова": {}, "Бус": {}, "Вантажівка": {}}, "3 Рота": {"Легкова": {}, "Бус": {}, "Вантажівка": {}}, "4 Рота": {"Легкова": {}, "Бус": {}, "Вантажівка": {}}, "5 Рота": {"Легкова": {}, "Бус": {}, "Вантажівка": {}}
         };
 
-        // Функція для завантаження даних: спочатку з localStorage, якщо не вийде - з INITIAL_CARS_DATA
         function getCarData() {
             const dataFromStorage = localStorage.getItem('CARS_DATA');
             try {
@@ -183,11 +225,9 @@
             } catch (e) {
                 console.error("Помилка парсингу даних з localStorage, використовуються стандартні.", e);
             }
-            // Повертаємо копію, щоб уникнути випадкової зміни початкових даних
             return JSON.parse(JSON.stringify(INITIAL_CARS_DATA));
         }
 
-        // Завантажуємо дані при старті
         let CARS_DATA = getCarData();
 
         const ROAD_COEFFS = { "Рух по дорозі з покращеним покриттям": 0.85, "Села, Селища, СМТ, малі міста": 1.05, "Великі міста, обласні центри": 1.1, "По бруково-щебневому шосе і твердій степовій цілині": 1.25, "По ґрунтових дорогах і дорогах з закріпленими пісками": 1.3, "У важких дорожніх умовах (бездоріжжя, сніг, пісок)": 1.35, "Київ, Дніпро, Харків і подібні": 1.15, };
@@ -197,12 +237,28 @@
         let state = { subdivision: null, type: null, carName: null, carInfo: null };
 
         function showScreen(screenId) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(screenId).classList.add('active'); window.scrollTo(0, 0); }
-        function showAlert(message, title = "Повідомлення") { document.getElementById('alert-title').textContent = title; document.getElementById('alert-message').textContent = message; document.getElementById('alert-modal').style.display = 'flex'; }
-        function showHelp(title, message) { document.getElementById('help-title').textContent = title; document.getElementById('help-message').textContent = message; document.getElementById('help-modal').style.display = 'flex'; }
+        function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
         function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+        
+        function showAlert(message, title = "Повідомлення") {
+            const alertTitle = document.getElementById('alert-title');
+            const alertMessage = document.getElementById('alert-message');
+            const alertButton = document.getElementById('alert-modal').querySelector('.btn');
+            
+            if(alertTitle) alertTitle.textContent = title;
+            if(alertMessage) alertMessage.textContent = message;
+            
+            // Reset button behavior
+            alertButton.onclick = () => closeModal('alert-modal');
+
+            openModal('alert-modal');
+        }
+
+        function showHelp(title, message) { document.getElementById('help-title').textContent = title; document.getElementById('help-message').textContent = message; openModal('help-modal'); }
+        
         function go_to_start() {
             resetCalculator();
-            routeData = []; // Clear distribution data
+            routeData = [];
             showScreen('screen-subdivision');
         }
 
@@ -268,12 +324,17 @@
             
             const isCargoCar = state.carInfo.cargo;
             const hasAircon = state.carInfo.aircon;
-            const fields_to_lock_by_default = ["Великі міста, обласні центри", "Київ, Дніпро, Харків і подібні", "По бруково-щебневому шосе і твердій степовій цілині", "По ґрунтових дорогах і дорогах з закріпленими пісками", "У важких дорожніх умовах (бездоріжжя, сніг, пісок)"];
+            const fields_to_lock_by_default = [
+                "Великі міста, обласні центри", 
+                "Київ, Дніпро, Харків і подібні",
+                "По ґрунтових дорогах і дорогах з закріпленими пісками",
+                "У важких дорожніх умовах (бездоріжжя, сніг, пісок)"
+            ];
 
             const cargoHtml = isCargoCar ? `<div class="input-group"><input type="number" inputmode="decimal" id="cargo_weight" placeholder="Вага вантажу (т)" oninput="updateCalculation()"></div><div class="switch-container"><span class="label-text">Вантаж тільки в один бік</span><label class="switch"><input type="checkbox" id="cargo_one_way" onchange="updateCalculation()"><span class="slider"></span></label></div>` : '';
             
             container.innerHTML = `
-                <div class="title-wrapper" style="margin-bottom: 0.75rem;"><h2>Показники одометра</h2><div class="help-btn" onclick="showHelp('Показники одометра', 'Введи сюди показники з одометра та дані по пальному, якщо вони є. Програма сама порахує загальний пробіг та витрату і вставить їх у поля. \\'Мета\\' нижче.')">?</div></div>
+                <div class="title-wrapper" style="margin-bottom: 0.75rem;"><h2>Показники одометра</h2><div class="help-btn" onclick="showHelp('Показники одометра', 'Введи сюди показники з одометра та дані по пальному, якщо вони є. Програма сама порахує загальний пробіг та витрату і вставить їх у поля \\'Мета\\' нижче.')">?</div></div>
                 <div class="input-group"><input type="number" inputmode="decimal" id="odo_start" placeholder="Одометр на початку (км)" oninput="calculateOdometerData()"></div>
                 <div class="input-group"><input type="number" inputmode="decimal" id="odo_end" placeholder="Одометр на кінець (км)" oninput="calculateOdometerData()"></div>
                 <h3>Рух пального (необов'язково)</h3>
@@ -281,7 +342,7 @@
                 <div class="input-group"><input type="number" inputmode="decimal" id="fuel_received" placeholder="Отримано (л)" oninput="calculateOdometerData()"></div>
                 <div class="input-group"><input type="number" inputmode="decimal" id="fuel_end" placeholder="Залишок (л)" oninput="calculateOdometerData()"></div>
                 <h1 class="my-4">АБО</h1>
-                <div class="title-wrapper" style="margin-bottom: 0.75rem;"><h2>Мета</h2><div class="help-btn" onclick="showHelp('Мета', 'Якщо не знаєш точних показників з одометра, введи тут вручну загальний пробіг та витрату пального, які потрібно \\'намалювати\\' у звіт. В тебе є можливість підставити тільки одне значення, ввести тільки(км) або тільки (л), після натискання (підібрати) другий показник буде підставлений автоматично, це спрацює якщо цифри стоять тільки в одному полі, тому тут і є кнопки (очистити).' )">?</div></div>
+                <div class="title-wrapper" style="margin-bottom: 0.75rem;"><h2>Мета</h2><div class="help-btn" onclick="showHelp('Мета', 'Якщо не знаєш точних показників з одометра, введи тут вручну загальний пробіг та витрату пального, які потрібно \\'намалювати\\' у звіті.')">?</div></div>
                 <div class="input-group"><div class="input-wrapper"><input type="number" inputmode="decimal" id="target_dist" placeholder="Загальний пробіг (км)" oninput="updateCalculation()"><div class="btn btn-clear" onclick="clearInput('target_dist')">Очистити</div></div></div>
                 <div class="input-group"><div class="input-wrapper"><input type="number" inputmode="decimal" id="target_fuel" placeholder="Загальна витрата (л)" oninput="updateCalculation()"><div class="btn btn-clear" onclick="clearInput('target_fuel')">Очистити</div></div><p id="base_rate_consumption_meta" class="result-diff mt-2"></p></div>
                 <hr>
@@ -328,17 +389,85 @@
         function getValues() { const values = { segments: {}, additives: {} }; document.querySelectorAll('.segment-dist').forEach(el => { values.segments[el.dataset.name] = parseFloat(el.value) || 0; }); document.querySelectorAll('.additive-coeff').forEach(el => { values.additives[el.dataset.name] = el.checked; }); values.target_fuel = parseFloat(document.getElementById('target_fuel')?.value) || 0; values.target_dist = parseFloat(document.getElementById('target_dist')?.value) || 0; values.cargo_weight = parseFloat(document.getElementById('cargo_weight')?.value) || 0; values.cargo_one_way = document.getElementById('cargo_one_way')?.checked || false; return values; }
         function getCurrentCalculation(segments_dict, dist_override = null, cargo_w_override = null, one_way_override = null) { if (!state.carInfo) return { total_fuel: 0, total_dist: 0 }; const inputs = getValues(); const base_rate_100km = state.carInfo.consumption; const road_work = Object.entries(segments_dict).reduce((sum, [name, dist]) => sum + dist * ROAD_COEFFS[name], 0); const total_dist = dist_override !== null ? dist_override : Object.values(segments_dict).reduce((sum, dist) => sum + dist, 0); const k_add = Object.entries(inputs.additives).reduce((sum, [name, checked]) => sum + (checked ? ADDITIVE_COEFFS[name] : 0), 0); const cargo_w = cargo_w_override !== null ? cargo_w_override : inputs.cargo_weight; const is_one_way = one_way_override !== null ? one_way_override : inputs.cargo_one_way; const cargo_dist = is_one_way ? total_dist / 2 : total_dist; const engine_type = state.carInfo.engine_type || "дизель"; const cargo_coeff = CARGO_COEFFS[engine_type.toLowerCase()] || 1.3; const cargo_fuel = (cargo_coeff * cargo_w * cargo_dist) / 100; const total_fuel = ((base_rate_100km / 100) * road_work) * (1 + k_add) + cargo_fuel; return { total_fuel, total_dist }; }
         function updateCalculation() { if (!state.carInfo) return; const inputs = getValues(); const { total_fuel, total_dist } = getCurrentCalculation(inputs.segments); document.getElementById('calculated_fuel').textContent = `${total_fuel.toFixed(2)} л`; const fuel_difference = total_fuel - inputs.target_fuel; const fuel_diff_el = document.getElementById('fuel_diff'); fuel_diff_el.textContent = `Різниця: ${fuel_difference >= 0 ? '+' : ''}${fuel_difference.toFixed(2)} л`; fuel_diff_el.style.color = Math.abs(fuel_difference) < 0.01 ? 'var(--success-color)' : 'var(--error-color)'; const base_rate_100km = state.carInfo.consumption; const target_dist = inputs.target_dist; const base_consumption = (base_rate_100km * target_dist) / 100; const base_consumption_el = document.getElementById('base_rate_consumption_meta'); if (base_consumption_el) { if (target_dist > 0) { base_consumption_el.innerHTML = `Витрата згідно базової лінійної норми: ${base_rate_100km.toFixed(1)} л/<sub>100км</sub> x ${target_dist.toFixed(1)} км x 0.01 = <span class="base-result">${base_consumption.toFixed(1)} л</span>`; } else { base_consumption_el.innerHTML = ''; } } document.getElementById('calculated_dist').textContent = `${total_dist.toFixed(1)} км`; const dist_difference = total_dist - inputs.target_dist; const dist_diff_el = document.getElementById('dist_diff'); dist_diff_el.textContent = `Різниця: ${dist_difference >= 0 ? '+' : ''}${dist_difference.toFixed(1)} км`; dist_diff_el.style.color = Math.abs(dist_difference) < 0.1 ? 'var(--success-color)' : 'var(--error-color)'; }
-        function randomizeDistances() { if (!state.carInfo) return showAlert("Спочатку оберіть автомобіль."); let target_dist = parseFloat(document.getElementById('target_dist').value) || 0; let target_fuel = parseFloat(document.getElementById('target_fuel').value) || 0; if (target_dist <= 0 && target_fuel <= 0) return showAlert("Введіть мету по пробігу або по витраті."); if (target_dist > 0 && target_fuel <= 0) { const tempSegments = getValues().segments; if (Object.values(tempSegments).every(v => v === 0)) { const base_rate_100km = state.carInfo.consumption; target_fuel = (base_rate_100km * target_dist) / 100; } else { const { total_fuel } = getCurrentCalculation(tempSegments, target_dist); target_fuel = total_fuel; } document.getElementById('target_fuel').value = target_fuel.toFixed(2); } else if (target_fuel > 0 && target_dist <= 0) { const tempSegments = getValues().segments; const currentDist = Object.values(tempSegments).reduce((s, d) => s + d, 0); if (currentDist > 0) { const { total_fuel: fuelForCurrentDist } = getCurrentCalculation(tempSegments); if (fuelForCurrentDist > 0) { const estimated_dist = (target_fuel / fuelForCurrentDist) * currentDist; target_dist = estimated_dist; document.getElementById('target_dist').value = estimated_dist.toFixed(1); } else { return showAlert("Неможливо розрахувати пробіг з поточними даними. Введіть пробіг вручну."); } } else { return showAlert("Неможливо розрахувати пробіг без введених відрізків шляху. Введіть пробіг вручну або заповніть відрізки."); } } const manual_coeffs = [1.3, 1.35]; const locked_segments = {}; const auto_segments_names = []; document.querySelectorAll('.segment-lock').forEach(el => { const name = el.dataset.name; const dist_el = document.querySelector(`.segment-dist[data-name="${name}"]`); if (el.checked || manual_coeffs.includes(ROAD_COEFFS[name])) { locked_segments[name] = parseFloat(dist_el.value) || 0; } else { auto_segments_names.push(name); } }); if (auto_segments_names.length === 0) return showAlert("Немає полів для автоматичного розподілу. Розблокуйте хоча б одне поле."); const locked_dist = Object.values(locked_segments).reduce((s, d) => s + d, 0); const { total_fuel: locked_fuel } = getCurrentCalculation(locked_segments); let remaining_dist = target_dist - locked_dist; if (remaining_dist < 0) return showAlert("Пробіг на заблокованих полях перевищує загальну мету."); let remaining_fuel_target = target_fuel - locked_fuel; const weights = auto_segments_names.map(name => { const coeff = ROAD_COEFFS[name]; if (coeff < 1.0) return 10; if (coeff < 1.15) return 4; return 1; }); const rand_values = weights.map(w => Math.random() * w); const total_rand = rand_values.reduce((s, r) => s + r, 0); if (total_rand === 0) return; let current_dists = {}; auto_segments_names.forEach((name, i) => { current_dists[name] = (rand_values[i] / total_rand) * remaining_dist; }); for (let i = 0; i < 3000; i++) { const { total_fuel: current_fuel } = getCurrentCalculation(current_dists); const fuel_diff = current_fuel - remaining_fuel_target; if (Math.abs(fuel_diff) < 0.01) break; const fuel_costs = {}; auto_segments_names.forEach(name => { fuel_costs[name] = getCurrentCalculation({[name]: 1}).total_fuel; }); const cheapest = Object.keys(fuel_costs).reduce((a, b) => fuel_costs[a] < fuel_costs[b] ? a : b); const most_expensive = Object.keys(fuel_costs).reduce((a, b) => fuel_costs[a] > fuel_costs[b] ? a : b); if (cheapest === most_expensive) break; const adjustment = Math.min(Math.abs(fuel_diff) * 0.1, 1.0); if (fuel_diff > 0) { if (current_dists[most_expensive] > adjustment) { current_dists[most_expensive] -= adjustment; current_dists[cheapest] += adjustment; } else break; } else { if (current_dists[cheapest] > adjustment) { current_dists[cheapest] -= adjustment; current_dists[most_expensive] += adjustment; } else break; } } let int_dists = {}; let remainder = remaining_dist; for(const name of auto_segments_names) { int_dists[name] = Math.floor(current_dists[name]); remainder -= int_dists[name]; } const sorted_by_remainder = auto_segments_names.sort((a,b) => (current_dists[b] - int_dists[b]) - (current_dists[a] - int_dists[a])); for(let i = 0; i < Math.round(remainder); i++) { int_dists[sorted_by_remainder[i % sorted_by_remainder.length]] += 1; } for(const name of auto_segments_names) { const dist_el = document.querySelector(`.segment-dist[data-name="${name}"]`); dist_el.value = int_dists[name] > 0 ? int_dists[name] : ''; } updateCalculation(); }
+        
+        function randomizeDistances() { 
+            if (!state.carInfo) return showAlert("Спочатку оберіть автомобіль."); 
+            let target_dist = parseFloat(document.getElementById('target_dist').value) || 0; 
+            let target_fuel = parseFloat(document.getElementById('target_fuel').value) || 0; 
+            if (target_dist <= 0 && target_fuel <= 0) return showAlert("Введіть мету по пробігу або по витраті."); 
+            if (target_dist > 0 && target_fuel <= 0) { const tempSegments = getValues().segments; if (Object.values(tempSegments).every(v => v === 0)) { const base_rate_100km = state.carInfo.consumption; target_fuel = (base_rate_100km * target_dist) / 100; } else { const { total_fuel } = getCurrentCalculation(tempSegments, target_dist); target_fuel = total_fuel; } document.getElementById('target_fuel').value = target_fuel.toFixed(2); } else if (target_fuel > 0 && target_dist <= 0) { const tempSegments = getValues().segments; const currentDist = Object.values(tempSegments).reduce((s, d) => s + d, 0); if (currentDist > 0) { const { total_fuel: fuelForCurrentDist } = getCurrentCalculation(tempSegments); if (fuelForCurrentDist > 0) { const estimated_dist = (target_fuel / fuelForCurrentDist) * currentDist; target_dist = estimated_dist; document.getElementById('target_dist').value = estimated_dist.toFixed(1); } else { return showAlert("Неможливо розрахувати пробіг з поточними даними. Введіть пробіг вручну."); } } else { return showAlert("Неможливо розрахувати пробіг без введених відрізків шляху. Введіть пробіг вручну або заповніть відрізки."); } } 
+            const manual_coeffs = [1.3, 1.35]; 
+            const locked_segments = {}; 
+            const auto_segments_names = []; 
+            document.querySelectorAll('.segment-lock').forEach(el => { const name = el.dataset.name; const dist_el = document.querySelector(`.segment-dist[data-name="${name}"]`); if (el.checked || manual_coeffs.includes(ROAD_COEFFS[name])) { locked_segments[name] = parseFloat(dist_el.value) || 0; } else { auto_segments_names.push(name); } }); if (auto_segments_names.length === 0) return showAlert("Немає полів для автоматичного розподілу. Розблокуйте хоча б одне поле."); 
+            const locked_dist = Object.values(locked_segments).reduce((s, d) => s + d, 0); 
+            const { total_fuel: locked_fuel } = getCurrentCalculation(locked_segments); 
+            let remaining_dist = target_dist - locked_dist; if (remaining_dist < 0) return showAlert("Пробіг на заблокованих полях перевищує загальну мету."); 
+            let remaining_fuel_target = target_fuel - locked_fuel; 
+            const weights = auto_segments_names.map(name => { const coeff = ROAD_COEFFS[name]; return 10 / coeff; }); 
+            const rand_values = weights.map(w => Math.random() * w); 
+            const total_rand = rand_values.reduce((s, r) => s + r, 0); if (total_rand === 0) return; 
+            let current_dists = {}; auto_segments_names.forEach((name, i) => { current_dists[name] = (rand_values[i] / total_rand) * remaining_dist; }); 
+            for (let i = 0; i < 3000; i++) { const { total_fuel: current_fuel } = getCurrentCalculation(current_dists); const fuel_diff = current_fuel - remaining_fuel_target; if (Math.abs(fuel_diff) < 0.01) break; const fuel_costs = {}; auto_segments_names.forEach(name => { fuel_costs[name] = getCurrentCalculation({[name]: 1}).total_fuel; }); const cheapest = Object.keys(fuel_costs).reduce((a, b) => fuel_costs[a] < fuel_costs[b] ? a : b); const most_expensive = Object.keys(fuel_costs).reduce((a, b) => fuel_costs[a] > fuel_costs[b] ? a : b); if (cheapest === most_expensive) break; const adjustment = Math.min(Math.abs(fuel_diff) * 0.1, 1.0); if (fuel_diff > 0) { if (current_dists[most_expensive] > adjustment) { current_dists[most_expensive] -= adjustment; current_dists[cheapest] += adjustment; } else break; } else { if (current_dists[cheapest] > adjustment) { current_dists[cheapest] -= adjustment; current_dists[most_expensive] += adjustment; } else break; } } 
+            let int_dists = {}; let remainder = remaining_dist; 
+            for(const name of auto_segments_names) { int_dists[name] = Math.floor(current_dists[name]); remainder -= int_dists[name]; } 
+            const sorted_by_remainder = auto_segments_names.sort((a,b) => (current_dists[b] - int_dists[b]) - (current_dists[a] - int_dists[a])); 
+            for(let i = 0; i < Math.round(remainder); i++) { int_dists[sorted_by_remainder[i % sorted_by_remainder.length]] += 1; } 
+            for(const name of auto_segments_names) { const dist_el = document.querySelector(`.segment-dist[data-name="${name}"]`); dist_el.value = int_dists[name] > 0 ? int_dists[name] : ''; } 
+            updateCalculation(); 
+        }
+
         function generateFormulaString(custom_segments, custom_dist, custom_cargo, custom_one_way) { try { const values = getValues(); const { total_fuel, total_dist } = getCurrentCalculation( custom_segments || values.segments, custom_dist, custom_cargo, custom_one_way ); const base_rate_100km = state.carInfo.consumption; const additive_parts = Object.entries(values.additives).filter(([_, checked]) => checked).map(([name, _]) => `${(ADDITIVE_COEFFS[name]*100).toFixed(0)}%`); const k_add_sum = Object.entries(values.additives).reduce((sum, [name, checked]) => sum + (checked ? ADDITIVE_COEFFS[name] : 0), 0); const final_rate = base_rate_100km * (1 + k_add_sum); const formula1 = `Базова лінійна норма витрат ${base_rate_100km.toFixed(2)}л/100км + ${additive_parts.length > 0 ? additive_parts.join(' + ') : '0%'} = ${final_rate.toFixed(2)}л/100км.`; const road_str_parts = []; const template_coeffs = [0.85, 0.9, 1.0, 1.05, 1.1, 1.15, 1.25, 1.3, 1.35]; const coeff_to_name_map = Object.fromEntries(Object.entries(ROAD_COEFFS).map(([k,v]) => [v,k])); const segments_to_use = custom_segments || values.segments; for (const coeff of template_coeffs) { let dist_found = 0; if(coeff_to_name_map[coeff] && segments_to_use[coeff_to_name_map[coeff]]) { dist_found = segments_to_use[coeff_to_name_map[coeff]]; } road_str_parts.push(`(${String(coeff).replace('.',',')}x${Math.round(dist_found)})`); } const road_str = road_str_parts.join('+'); const cargo_w = custom_cargo ?? values.cargo_weight; const one_way = custom_one_way ?? values.cargo_one_way; const cargo_str = isNaN(cargo_w) || cargo_w === 0 ? "" : `+1,3*(${cargo_w.toFixed(1)}т${one_way ? '/2' : ''})`; const formula2 = `Всього ${Math.round(total_dist)}км; (${final_rate.toFixed(2)}л/100км${cargo_str})x((${road_str}))x0,01=${total_fuel.toFixed(2)}л;`; return {formula1, formula2, total_fuel}; } catch (e) { console.error("Formula generation error:", e); return { formula1: "Помилка при генерації формули.", formula2: "", total_fuel: 0 }; } }
-        function showFormula() { const { formula1, formula2 } = generateFormulaString(); document.getElementById('formula-modal-title').textContent = "Формула розрахунку"; document.getElementById('formula-text').textContent = `${formula1}\n\n${formula2}`; document.getElementById('formula-modal').style.display = 'flex'; }
+        
+        function showFormula() { 
+            const { formula1, formula2 } = generateFormulaString();
+            const reportContent = `${formula1}\n\n${formula2}`;
+            showReport(reportContent);
+        }
+
+        function showReport(reportContent) {
+            const isMobilePortrait = window.innerWidth < 768 && window.innerWidth < window.innerHeight;
+            
+            const displayReport = () => {
+                const reportHtml = `
+                    <!DOCTYPE html>
+                    <html lang="uk">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+                        <style>
+                            body { background-color: #ffffff; color: #000000; font-family: 'Courier New', Courier, monospace; font-size: 14px; line-height: 1.15; margin: 15px; }
+                            pre { margin: 0; white-space: pre; overflow-x: auto; }
+                        </style>
+                    </head>
+                    <body><pre>${reportContent.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre></body>
+                    </html>
+                `;
+                document.getElementById('report-frame').srcdoc = reportHtml;
+                openModal('report-modal');
+            };
+
+            if (isMobilePortrait) {
+                showAlert("Для кращого перегляду звіту, будь ласка, поверніть ваш пристрій горизонтально.", "Порада");
+                document.getElementById('alert-modal').querySelector('.btn').onclick = () => {
+                    closeModal('alert-modal');
+                    displayReport();
+                };
+            } else {
+                displayReport();
+            }
+        }
+        
         function copyToClipboard(text) { navigator.clipboard.writeText(text).then(() => { showAlert('Скопійовано!'); }).catch(err => { showAlert('Не вдалося скопіювати.'); }); }
         function copyFormula() { const formulaText = document.getElementById('formula-text').textContent; copyToClipboard(formulaText); closeModal('formula-modal'); }
+        
         let routeData = [];
-        function openDistributionModal() { renderDistributionTable(15); updateDistributionTotals(); document.getElementById('distribution-modal').style.display = 'flex'; }
+        function openDistributionModal() { renderDistributionTable(15); updateDistributionTotals(); openModal('distribution-modal'); }
         function addRouteRow() { if (routeData.length >= 30) { showAlert('Досягнуто максимальної кількості маршрутів (30).'); return; } renderDistributionTable(routeData.length + 1); }
         function renderDistributionTable(rowCount) { const table = document.getElementById('dist-table'); const isCargoCar = state.carInfo.cargo; const masterSegments = getValues().segments; let headerHtml = `<div class="cell header">Маршрут</div><div class="cell header">Заг. пробіг</div>`; if (isCargoCar) { headerHtml += `<div class="cell header">Вага (т)</div><div class="cell header">1 бік</div>`; } SEGMENT_ORDER.forEach(name => { const coeff = ROAD_COEFFS[name]; const isActive = (masterSegments[name] || 0) > 0; headerHtml += `<div class="cell header"><div>${coeff}</div><input type="checkbox" data-col-name="${name}" onchange="toggleColumnCheckboxes(this)" ${isActive ? 'checked':''}></div>`; }); let bodyHtml = ''; const existingRowCount = routeData.length; if (rowCount < existingRowCount) { routeData = routeData.slice(0, rowCount); } for(let i=0; i<rowCount; i++) { if (i >= existingRowCount) { routeData.push({ dist: '', cargo: '', oneWay: false, allowed: Object.fromEntries(SEGMENT_ORDER.map(name => [name, (masterSegments[name] || 0) > 0])) }); } else { routeData[i].allowed = Object.fromEntries(SEGMENT_ORDER.map(name => [name, (masterSegments[name] || 0) > 0])); } const route = routeData[i]; bodyHtml += `<div class="cell">№${i + 1}</div>`; bodyHtml += `<div class="cell"><input type="number" inputmode="decimal" value="${route.dist}" oninput="routeData[${i}].dist = this.value; updateDistributionTotals();"></div>`; if(isCargoCar) { bodyHtml += `<div class="cell"><input type="number" inputmode="decimal" value="${route.cargo}" oninput="routeData[${i}].cargo = this.value; updateDistributionTotals();"></div>`; bodyHtml += `<div class="cell"><input type="checkbox" ${route.oneWay ? 'checked' : ''} onchange="routeData[${i}].oneWay = this.checked;"></div>`; } SEGMENT_ORDER.forEach(name => { bodyHtml += `<div class="cell"><input type="checkbox" data-col-name="${name}" ${route.allowed[name] ? 'checked' : ''} onchange="routeData[${i}].allowed['${name}'] = this.checked;"></div>`; }); } const columnCount = 2 + (isCargoCar ? 2 : 0) + SEGMENT_ORDER.length; table.style.gridTemplateColumns = `60px 80px ${isCargoCar ? '80px 40px' : ''} repeat(${SEGMENT_ORDER.length}, 60px)`; table.innerHTML = headerHtml + bodyHtml; }
         function toggleColumnCheckboxes(headerCheckbox) { const name = headerCheckbox.dataset.colName; const isChecked = headerCheckbox.checked; document.querySelectorAll(`#dist-table input[type="checkbox"][data-col-name="${name}"]`).forEach((cb, index) => { if (index > 0 && routeData[index - 1]) { cb.checked = isChecked; routeData[index - 1].allowed[name] = isChecked; } }); }
         function updateDistributionTotals() { const target_dist = parseFloat(document.getElementById('target_dist')?.value) || 0; const entered_dist = routeData.reduce((sum, route) => sum + (parseFloat(route.dist) || 0), 0); document.getElementById('remaining-dist-label').textContent = `Залишок для розподілу: ${(target_dist - entered_dist).toFixed(1)} км`; if (state.carInfo.cargo) { const target_cargo = parseFloat(document.getElementById('cargo_weight')?.value) || 0; const entered_cargo = routeData.reduce((sum, route) => sum + (parseFloat(route.cargo) || 0), 0); document.getElementById('remaining-cargo-label').textContent = `Залишок вантажу: ${(target_cargo - entered_cargo).toFixed(1)} т`; document.getElementById('remaining-cargo-label').style.display = 'block'; } else { document.getElementById('remaining-cargo-label').style.display = 'none'; } }
+        
         function runDistribution() {
             const masterSegments = getValues().segments; const targetFuel = parseFloat(document.getElementById('target_fuel')?.value) || 0; const routes = routeData.map((rd, i) => ({ id: i + 1, total_dist: parseFloat(rd.dist) || 0, allowed: Object.keys(rd.allowed).filter(name => rd.allowed[name]), cargo: parseFloat(rd.cargo) || 0, one_way: rd.oneWay, result: Object.fromEntries(SEGMENT_ORDER.map(name => [name, 0])) })).filter(r => r.total_dist > 0);
             if (routes.length === 0) return showAlert('Не введено жодного маршруту з пробігом.');
@@ -355,19 +484,80 @@
             for(const name in masterSegments) { if (Math.abs(validatedSegments[name] - Math.round(masterSegments[name])) > 0) { validationErrors.push(`- Розподіл по "${name}" (${validatedSegments[name]} км) не збігається з головним екраном (${Math.round(masterSegments[name])} км).`); } }
             report += "\n\n" + "=".repeat(80) + "\n" + "ФІНАЛЬНА ПЕРЕВІРКА".padStart(48) + "\n" + "=".repeat(80) + "\n";
             if (validationErrors.length === 0) { report += "\n(✓ УСПІХ): Усі розрахунки збігаються. Формули перераховані та відповідають дійсності."; } else { report += "\n(❌ ПОМИЛКА): Виявлено розбіжності в розрахунках:\n" + validationErrors.join("\n"); }
-            document.getElementById('formula-modal-title').textContent = "Детальний звіт"; document.getElementById('formula-text').textContent = report; document.getElementById('formula-modal').style.display = 'flex';
+            showReport(report);
+        }
+
+        async function sendFeedback() {
+            const text = document.getElementById('feedback-text').value.trim();
+            if (!text) {
+                showAlert('Будь ласка, введіть текст вашої пропозиції.');
+                return;
+            }
+            if (TELEGRAM_BOT_TOKEN === 'СЮДИ ВСТАВИТИ ВАШ ТОКЕН' || TELEGRAM_CHAT_ID === 'СЮДИ ВСТАВИТИ ID ВАШОГО ЧАТУ') {
+                showAlert('Функція зворотного зв\'язку не налаштована розробником.', 'Помилка');
+                return;
+            }
+
+            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+            const payload = {
+                chat_id: TELEGRAM_CHAT_ID,
+                text: `Новий відгук:\n\n${text}`,
+                parse_mode: 'HTML'
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (data.ok) {
+                    showAlert('Дякуємо за ваш відгук!', 'Надіслано');
+                    document.getElementById('feedback-text').value = '';
+                    closeModal('feedback-modal');
+                } else {
+                    throw new Error(data.description);
+                }
+            } catch (error) {
+                showAlert(`Не вдалося надіслати повідомлення. Помилка: ${error.message}`, 'Помилка');
+            }
+        }
+        
+        function setupServiceWorkerUpdateNotifications() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./service-worker.js').then(reg => {
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                const notification = document.getElementById('update-notification');
+                                notification.style.display = 'block';
+
+                                document.getElementById('update-accept').onclick = () => {
+                                    newWorker.postMessage({ action: 'skipWaiting' });
+                                };
+                                document.getElementById('update-dismiss').onclick = () => {
+                                    notification.style.display = 'none';
+                                };
+                            }
+                        });
+                    });
+                }).catch(err => console.log('Service Worker registration failed:', err));
+
+                let refreshing;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (refreshing) return;
+                    window.location.reload();
+                    refreshing = true;
+                });
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                  .then(reg => console.log('Service worker registered.', reg))
-                  .catch(err => console.log('Service worker not registered.', err));
-              });
-            }
             renderSubdivisions();
             showScreen('screen-subdivision');
+            setupServiceWorkerUpdateNotifications();
         });
     </script>
 </body>
