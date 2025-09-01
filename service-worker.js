@@ -1,5 +1,5 @@
 // Назва кешу (змінюйте версію v1, v2, v3..., коли оновлюєте файли)
-const CACHE_NAME = 'fuel-calculator-cache-v6';
+const CACHE_NAME = 'fuel-calculator-cache-v7';
 
 // Файли, які потрібно зберегти для офлайн-роботи
 const urlsToCache = [
